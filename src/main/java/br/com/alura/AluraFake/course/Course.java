@@ -1,10 +1,14 @@
 package br.com.alura.AluraFake.course;
 
+import br.com.alura.AluraFake.task.OpenTextTask;
+import br.com.alura.AluraFake.task.Task;
 import br.com.alura.AluraFake.user.User;
 import jakarta.persistence.*;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Course {
@@ -21,6 +25,9 @@ public class Course {
     private Status status;
     private LocalDateTime publishedAt;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private Set<Task> tasks;
+
     @Deprecated
     public Course(){}
 
@@ -30,6 +37,12 @@ public class Course {
         this.instructor = instructor;
         this.description = description;
         this.status = Status.BUILDING;
+        tasks = new HashSet<>();
+    }
+
+    public void addOpenTextTask(String statement, Integer order) {
+        Task task = new OpenTextTask(statement, order, this);
+        tasks.add(task);
     }
 
     public Long getId() {
