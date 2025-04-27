@@ -4,7 +4,6 @@ import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.course.CourseRepository;
 import br.com.alura.AluraFake.user.User;
 import br.com.alura.AluraFake.user.UserRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -31,46 +30,43 @@ class TaskRepositoryTest {
     @Test
     void findByCourseIdAndStatement_should_return_empty_optional_when_doenst_exist_the_specified_task() {
 
-        User instructor = new User("Matheus Paulino", "matheus@alura.com.br", INSTRUCTOR);
-        userRepository.save(instructor);
-
         final String statement = "Qual foi a linguagem estudada?";
-        Course course = new Course("Java OO", "Aprenda os conceitos de OO", instructor);
-        course.addOpenTextTask(statement, 1);
-        courseRepository.save(course);
-
+        User instructor = createAndPopulateInstructor();
+        Course course = createAndPopulateCourseWithStatementAndInstructor(statement, instructor);
         Long courseId = course.getId();
+
         final String otherStatement = "Quando a linguagem foi criada?";
         final Long otherCourseId = courseId + 1;
 
-        // Has to fail when the id exists but the statement doesn't
-        Optional<Task> otherStatementTask = taskRepository.findByCourseIdAndStatement(courseId, otherStatement);
-        assertThat(otherStatementTask).isEmpty();
-
-        // Has to fail when the id doesn't exists but the statement does
-        Optional<Task> otherCourseIdTask = taskRepository.findByCourseIdAndStatement(otherCourseId, statement);
-        assertThat(otherCourseIdTask).isEmpty();
-
-        // Has to fail when both id and statement doesn't exist
-        Optional<Task> task = taskRepository.findByCourseIdAndStatement(otherCourseId, otherStatement);
-        assertThat(task).isEmpty();
+        assertThat(taskRepository.findByCourseIdAndStatement(courseId, otherStatement)).isEmpty();      // Has to fail when the id exists but the statement doesn't
+        assertThat(taskRepository.findByCourseIdAndStatement(otherCourseId, statement)).isEmpty();      // Has to fail when the id doesn't exists but the statement does
+        assertThat(taskRepository.findByCourseIdAndStatement(otherCourseId, otherStatement)).isEmpty(); // Has to fail when both id and statement doesn't exist
     }
 
     @Test
     void findByCourseIdAndStatement_should_return_entity_when_the_specified_task_exists() {
 
-        User instructor = new User("Matheus Paulino", "matheus@alura.com.br", INSTRUCTOR);
-        userRepository.save(instructor);
-
         final String statement = "Qual foi a linguagem estudada?";
-        Course course = new Course("Java OO", "Aprenda os conceitos de OO", instructor);
-        course.addOpenTextTask(statement, 1);
-        courseRepository.save(course);
-
+        User instructor = createAndPopulateInstructor();
+        Course course = createAndPopulateCourseWithStatementAndInstructor(statement, instructor);
         Long courseId = course.getId();
+
         Optional<Task> task = taskRepository.findByCourseIdAndStatement(courseId, statement);
         assertThat(task).isPresent();
         assertThat(task.get().getStatement()).isEqualTo(statement);
         assertThat(task.get().getCourse().getId()).isEqualTo(courseId);
+    }
+
+    private User createAndPopulateInstructor() {
+        User instructor = new User("Matheus Paulino", "matheus@alura.com.br", INSTRUCTOR);
+        userRepository.save(instructor);
+        return instructor;
+    }
+
+    private Course createAndPopulateCourseWithStatementAndInstructor(String statement, User instructor) {
+        Course course = new Course("Java OO", "Aprenda os conceitos de OO", instructor);
+        course.addOpenTextTask(statement, 1);
+        courseRepository.save(course);
+        return course;
     }
 }

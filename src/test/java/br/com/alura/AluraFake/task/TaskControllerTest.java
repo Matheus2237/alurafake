@@ -17,8 +17,7 @@ import static br.com.alura.AluraFake.course.Status.PUBLISHED;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TaskController.class)
 class TaskControllerTest {
@@ -66,10 +65,8 @@ class TaskControllerTest {
         mockMvc.perform(post("/task/new/opentext")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newOpenTextTaskDTO)))
-                .andExpect(status().isBadRequest());
-
-//                .andExpect(jsonPath("$[0].field").value("statement"))
-//                .andExpect(jsonPath("$[0].message").isNotEmpty());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Course has to be in building phase to allow tasks registrations."));
     }
 
     @Test
@@ -129,15 +126,15 @@ class TaskControllerTest {
 
         when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
         when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getId()).thenReturn(courseId);
         when(taskRepository.findByCourseIdAndStatement(courseId, duplicatedStatement))
                 .thenReturn(Optional.of(duplicatedOpenTextTaskMock));
 
         mockMvc.perform(post("/task/new/opentext")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newOpenTextTaskDTO)))
-                .andExpect(status().isBadRequest());
-//                .andExpect(jsonPath("$[0].field").value("statement"))
-//                .andExpect(jsonPath("$[0].message").isNotEmpty());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("A task with the same statement already exists for this course."));
     }
 
     @Test
@@ -188,25 +185,3 @@ class TaskControllerTest {
         verify(taskRepository, times(1)).save(any(Task.class));
     }
 }
-
-
-
-//Resumo organizado para implementação
-//
-//Cenário                                   Expectativa             Observação
-//Atividade criada corretamente	            201 Created
-//Enunciado menor que 4 caracteres          400 Bad Request         jsonPath para campo "statement"
-//Enunciado maior que 255 caracteres        400 Bad Request         jsonPath para campo "statement"
-//Enunciado já existente no curso           400 Bad Request         jsonPath para campo "statement"
-//Ordem igual a 0 ou negativa               400 Bad Request         jsonPath para campo "order"
-//Curso não encontrado                      400 Bad Request         jsonPath para campo "courseId"
-//Curso com status diferente de BUILDING    400 Bad Request         jsonPath para campo "courseId"
-
-
-//newOpenTextExercise__should_return_not_found_when_course_does_not_exist                       ok
-//newOpenTextExercise__should_return_bad_request_when_course_status_is_not_building             ok
-//newOpenTextExercise__should_return_bad_request_when_statement_is_too_short                    ok
-//newOpenTextExercise__should_return_bad_request_when_statement_is_too_long                     ok
-//newOpenTextExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course    ok
-//newOpenTextExercise__should_return_bad_request_when_order_is_not_positive                     ok
-//newOpenTextExercise__should_return_created_when_request_is_valid

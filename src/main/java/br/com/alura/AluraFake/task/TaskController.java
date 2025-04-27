@@ -2,7 +2,10 @@ package br.com.alura.AluraFake.task;
 
 import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.course.CourseRepository;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,27 +31,10 @@ public class TaskController {
 
     @PostMapping("/task/new/opentext")
     public ResponseEntity newOpenTextExercise(@Valid @RequestBody OpenTextTaskDTO openTextTaskDTO) {
+        Course course = getCourseIfPersistedByItsId(openTextTaskDTO.courseId());
+        validateTaskForCourse(course, openTextTaskDTO.statement());
 
-        Long courseId = openTextTaskDTO.courseId();
-        String statement = openTextTaskDTO.statement();
-
-        Optional<Course> possibleCourse = courseRepository.findById(courseId);
-        if (possibleCourse.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Course course = possibleCourse.get();
-        if (!BUILDING.equals(course.getStatus())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Optional<Task> possibleDuplicatedTask = taskRepository.findByCourseIdAndStatement(courseId, statement);
-        if (possibleDuplicatedTask.isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Integer order = openTextTaskDTO.order();
-        OpenTextTask openTextTask = new OpenTextTask(statement, order, course);
+        OpenTextTask openTextTask = new OpenTextTask(openTextTaskDTO.statement(), openTextTaskDTO.order(), course);
         taskRepository.save(openTextTask);
 
         return ResponseEntity.status(CREATED).build();
@@ -64,4 +50,17 @@ public class TaskController {
         return ResponseEntity.ok().build();
     }
 
+    private Course getCourseIfPersistedByItsId(Long id) {
+        return courseRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Course doesn't exist"));
+    }
+
+    private void validateTaskForCourse(Course course, String statement) {
+        if (!BUILDING.equals(course.getStatus())) {
+            throw new IllegalStateException("Course has to be in building phase to allow tasks registrations.");
+        }
+        Optional<Task> possibleDuplicatedTask = taskRepository.findByCourseIdAndStatement(course.getId(), statement);
+        if (possibleDuplicatedTask.isPresent()) {
+            throw new EntityExistsException("A task with the same statement already exists for this course.");
+        }
+    }
 }
