@@ -30,6 +30,8 @@ public abstract class Task implements Comparable<Task> {
     @Column(insertable = false, updatable = false)
     private Type type;
 
+    protected Task() {}
+
     protected Task(String statement, Integer order, Course course, Type type) {
         this.statement = statement;
         this.order = order;

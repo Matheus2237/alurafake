@@ -55,8 +55,10 @@ public class Course {
     }
 
     private boolean isOrderValidToInsert(Integer order) {
-        return tasks.isEmpty() || tasks.stream().map(Task::getOrder).anyMatch(o -> o.equals(order))
-                || tasks.getLast().getOrder().equals(order-1);
+        return tasks.isEmpty()
+                ? order.equals(1)
+                : tasks.stream().map(Task::getOrder).anyMatch(o -> o.equals(order))
+                    || tasks.getLast().getOrder().equals(order-1);
     }
 
     private void insertNewTaskShiftingSubsequentTasks(Task task) {

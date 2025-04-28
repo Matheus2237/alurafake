@@ -43,6 +43,14 @@ class CourseTest {
     }
 
     @Test
+    void addOpenTextTask_should_throw_exception_when_trying_to_insert_task_with_order_higher_than_one_when_list_is_empty() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            course.addOpenTextTask("Task", 2);
+        });
+        assertEquals("The order has to be in an insertable position.", exception.getMessage());
+    }
+
+    @Test
     void addOpenTextTask_should_insert_first_task_when_list_is_empty() {
         course.addOpenTextTask("Task 1", 1);
         assertEquals(1, course.getTasks().size());
