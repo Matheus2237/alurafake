@@ -21,7 +21,7 @@ public class ValidationExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    @ExceptionHandler({IllegalStateException.class, EntityExistsException.class})
+    @ExceptionHandler({IllegalStateException.class, EntityExistsException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleIllegalStateException(Exception ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());

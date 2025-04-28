@@ -7,8 +7,10 @@ import jakarta.persistence.*;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 
 @Entity
 public class Course {
@@ -25,8 +27,9 @@ public class Course {
     private Status status;
     private LocalDateTime publishedAt;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private Set<Task> tasks;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("task_order ASC")
+    private List<Task> tasks;
 
     @Deprecated
     public Course(){}
@@ -37,12 +40,32 @@ public class Course {
         this.instructor = instructor;
         this.description = description;
         this.status = Status.BUILDING;
-        tasks = new HashSet<>();
+        tasks = new ArrayList<>();
+    }
+
+    public boolean hasAnyTaskWithSameStatement(String statement) {
+        Stream<Task> stream = tasks.stream();
+        return stream.anyMatch(task -> task.getStatement().equals(statement));
     }
 
     public void addOpenTextTask(String statement, Integer order) {
+        Assert.isTrue(isOrderValidToInsert(order), "The order has to be in an insertable position.");
         Task task = new OpenTextTask(statement, order, this);
-        tasks.add(task);
+        insertNewTaskShiftingSubsequentTasks(task);
+    }
+
+    private boolean isOrderValidToInsert(Integer order) {
+        return tasks.isEmpty() || tasks.stream().map(Task::getOrder).anyMatch(o -> o.equals(order))
+                || tasks.getLast().getOrder().equals(order-1);
+    }
+
+    private void insertNewTaskShiftingSubsequentTasks(Task task) {
+        Collections.sort(tasks);
+        int insertPosition = task.getOrder() - 1;
+        tasks.add(insertPosition, task);
+        for (int i = insertPosition + 1; i < tasks.size(); i++) {
+            tasks.get(i).incrementOrder();
+        }
     }
 
     public Long getId() {
@@ -75,5 +98,9 @@ public class Course {
 
     public LocalDateTime getPublishedAt() {
         return publishedAt;
+    }
+
+    public List<Task> getTasks() {
+        return Collections.unmodifiableList(tasks);
     }
 }

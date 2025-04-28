@@ -5,14 +5,11 @@ import br.com.alura.AluraFake.course.CourseRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 import static br.com.alura.AluraFake.course.Status.BUILDING;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -33,10 +30,8 @@ public class TaskController {
     public ResponseEntity newOpenTextExercise(@Valid @RequestBody OpenTextTaskDTO openTextTaskDTO) {
         Course course = getCourseIfPersistedByItsId(openTextTaskDTO.courseId());
         validateTaskForCourse(course, openTextTaskDTO.statement());
-
-        OpenTextTask openTextTask = new OpenTextTask(openTextTaskDTO.statement(), openTextTaskDTO.order(), course);
-        taskRepository.save(openTextTask);
-
+        course.addOpenTextTask(openTextTaskDTO.statement(), openTextTaskDTO.order());
+        courseRepository.save(course);
         return ResponseEntity.status(CREATED).build();
     }
 
@@ -58,8 +53,10 @@ public class TaskController {
         if (!BUILDING.equals(course.getStatus())) {
             throw new IllegalStateException("Course has to be in building phase to allow tasks registrations.");
         }
-        Optional<Task> possibleDuplicatedTask = taskRepository.findByCourseIdAndStatement(course.getId(), statement);
-        if (possibleDuplicatedTask.isPresent()) {
+        if (course.getTitle().equals(statement)) {
+            throw new IllegalArgumentException("The task's statement is the same as the course title.");
+        }
+        if (course.hasAnyTaskWithSameStatement(statement)) {
             throw new EntityExistsException("A task with the same statement already exists for this course.");
         }
     }

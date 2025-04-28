@@ -115,20 +115,38 @@ class TaskControllerTest {
     }
 
     @Test
+    void newOpenTextExercise__should_return_bad_request_when_task_statement_is_duplicated_with_course_title() throws Exception {
+
+        final Long courseId = 42L;
+        final String statement = "Statement";
+
+        Course courseMock = mock(Course.class);
+        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(courseId, statement, 1);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn(statement);
+
+        mockMvc.perform(post("/task/new/opentext")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newOpenTextTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("The task's statement is the same as the course title."));
+    }
+
+    @Test
     void newOpenTextExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course() throws Exception {
 
         final Long courseId = 42L;
         final String duplicatedStatement = "Statement duplicado.";
 
-        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(courseId, duplicatedStatement, 1);
-        OpenTextTask duplicatedOpenTextTaskMock = mock(OpenTextTask.class);
         Course courseMock = mock(Course.class);
+        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(courseId, duplicatedStatement, 1);
 
         when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
         when(courseMock.getStatus()).thenReturn(BUILDING);
-        when(courseMock.getId()).thenReturn(courseId);
-        when(taskRepository.findByCourseIdAndStatement(courseId, duplicatedStatement))
-                .thenReturn(Optional.of(duplicatedOpenTextTaskMock));
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(duplicatedStatement)).thenReturn(true);
 
         mockMvc.perform(post("/task/new/opentext")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -170,18 +188,41 @@ class TaskControllerTest {
     }
 
     @Test
-    void newOpenTextExercise__should_return_created_when_request_is_valid() throws Exception {
-
+    void newOpenTextExercise__should_return_bad_request_when_order_skips_sequence() throws Exception {
         Course courseMock = mock(Course.class);
+        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "Statement", 3);
+
         when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
         when(courseMock.getStatus()).thenReturn(BUILDING);
-        when(taskRepository.findByCourseIdAndStatement(anyLong(), anyString())).thenReturn(Optional.empty());
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("The order has to be in a insertable position."))
+                .when(courseMock).addOpenTextTask(anyString(), anyInt());
 
-        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "statement", 1);
+        mockMvc.perform(post("/task/new/opentext")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newOpenTextTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("The order has to be in a insertable position."));
+    }
+
+    @Test
+    void newOpenTextExercise__should_create_task_normally_when_all_data_is_valid_and_there_is_no_problem_in_order() throws Exception {
+
+        Course courseMock = mock(Course.class);
+        OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "New Task", 1);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(taskRepository.findByCourseIdAndStatement(anyLong(), anyString())).thenReturn(Optional.empty());
+        doNothing().when(courseMock).addOpenTextTask(anyString(), anyInt());
+
         mockMvc.perform(post("/task/new/opentext")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newOpenTextTaskDTO)))
                 .andExpect(status().isCreated());
-        verify(taskRepository, times(1)).save(any(Task.class));
+
+        verify(courseRepository, times(1)).save(any(Course.class));
     }
 }

@@ -3,8 +3,6 @@ package br.com.alura.AluraFake.task;
 import br.com.alura.AluraFake.course.Course;
 import jakarta.persistence.*;
 
-import java.util.Objects;
-
 import static jakarta.persistence.DiscriminatorType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
@@ -12,7 +10,7 @@ import static jakarta.persistence.InheritanceType.SINGLE_TABLE;
 @Entity
 @Inheritance(strategy = SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = STRING)
-public abstract class Task {
+public abstract class Task implements Comparable<Task> {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -39,27 +37,24 @@ public abstract class Task {
         this.type = type;
     }
 
-    public Course getCourse() {
-        return course;
+    @Override
+    public int compareTo(Task other) {
+        return this.order.compareTo(other.order);
+    }
+
+    public void incrementOrder() {
+        this.order++;
     }
 
     public String getStatement() {
         return statement;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Task task = (Task) o;
-        return Objects.equals(id, task.id)
-                && Objects.equals(statement, task.statement)
-                && Objects.equals(order, task.order)
-                && Objects.equals(course, task.course)
-                && Objects.equals(type, task.type);
+    public Integer getOrder() {
+        return order;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, statement, order, course);
+    public Course getCourse() {
+        return course;
     }
 }
