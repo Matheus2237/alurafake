@@ -6,10 +6,12 @@ import jakarta.persistence.*;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static br.com.alura.AluraFake.course.Status.PUBLISHED;
+import static java.util.stream.Collectors.toSet;
 
 @Entity
 public class Course {
@@ -80,6 +82,29 @@ public class Course {
         }
     }
 
+    public void publish() {
+        this.status = PUBLISHED;
+    }
+
+    public boolean isPublished() {
+        return this.status.equals(PUBLISHED);
+    }
+
+    public boolean hasAllTypeOfTasks() {
+        Set<Type> foundTypes = this.tasks.stream().map(Task::getType).collect(toSet());
+        return foundTypes.containsAll(EnumSet.allOf(Type.class));
+    }
+
+    public boolean hasAllTasksInValidOrder() {
+        List<Integer> sortedOrders = tasks.stream().map(Task::getOrder).sorted().toList();
+        for (int i = 0; i < sortedOrders.size(); i++) {
+            if (sortedOrders.get(i) != i + 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Long getId() {
         return id;
     }
@@ -90,10 +115,6 @@ public class Course {
 
     public String getTitle() {
         return title;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     public User getInstructor() {

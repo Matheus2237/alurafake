@@ -1,7 +1,7 @@
 # Case Tecnico Alura
 Seja bem-vindo ao teste para desenvolvedor Java Júnior da Alura. Neste
-desafio, simulamos uma parte do nosso domínio para que você possa demonstrar seus conhecimentos. 
-Não há respostas certas ou erradas, nosso objetivo é avaliar como você aplica lógica e 
+desafio, simulamos uma parte do nosso domínio para que você possa demonstrar seus conhecimentos.
+Não há respostas certas ou erradas, nosso objetivo é avaliar como você aplica lógica e
 conceitos de orientação a objetos para solucionar problemas.
 
 ## Requisitos
@@ -22,8 +22,8 @@ conceitos de orientação a objetos para solucionar problemas.
 
 ## Desafio
 
-Já disponibilizamos um projeto base como ponto de partida, no qual as tecnologias exigidas já estão configuradas. 
-Algumas lógicas relacionadas às entidades usuário e curso já estão implementadas, 
+Já disponibilizamos um projeto base como ponto de partida, no qual as tecnologias exigidas já estão configuradas.
+Algumas lógicas relacionadas às entidades usuário e curso já estão implementadas,
 e podem ser utilizadas como orientação para a resolução das questões.
 
 **Importante:** Não se preocupe com a parte visual, toda a interação devem ser feitas
@@ -156,7 +156,7 @@ E uma nova atividade tenta ser inserida com ordem 4, o sistema deve lançar um e
 
 ```
 
-### Questão 2 — Publicação de x
+### Questão 2 — Publicação de Cursos
 
 Para publicar um curso, ele deve:
 
@@ -174,16 +174,16 @@ curl -w "%{http_code}\n" -X POST http://localhost:8080/course/42/publish
 
 ### Bônus (não obrigatório)
 
-- Configure o Spring Security para proteger os endpoints de criação de atividades e criação/publicação de cursos. 
+- Configure o Spring Security para proteger os endpoints de criação de atividades e criação/publicação de cursos.
   O acesso deve ser restrito a usuários com a role `INSTRUCTOR`, os demais endpoints de listagens podem ser acessados por qualquer usuário, desde que estejam autenticados.
 
 ## Considerações finais
 
 - A avaliação do case será realizada exclusivamente com base nos requisitos e na forma como você utiliza **lógica**,
-**orientação a objetos** e **testes**. Qualquer tecnologia fora do escopo, como Swagger, Docker, ou aspectos visuais, 
+  **orientação a objetos** e **testes**. Qualquer tecnologia fora do escopo, como Swagger, Docker, ou aspectos visuais,
   não será considerada como um diferencial.
 - Testes são obrigatórios e serão avaliados como requisito.
 - Caso você tenha alguma dúvida sobre a descrição das questões, faça anotações no código e siga o que considerar mais adequado.
 - Outros candidatos estão concorrendo à mesma vaga, e códigos muito semelhantes resultarão na anulação do case.
-- Utilize ferramentas de IA, mas tenha cautela com o código gerado automaticamente. Caso avance para a próxima etapa, 
-a entrevista síncrona será baseada no código que você produziu.
+- Utilize ferramentas de IA, mas tenha cautela com o código gerado automaticamente. Caso avance para a próxima etapa,
+  a entrevista síncrona será baseada no código que você produziu.

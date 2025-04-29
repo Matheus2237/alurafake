@@ -39,13 +39,13 @@ public abstract class Task implements Comparable<Task> {
         this.type = type;
     }
 
+    public void incrementOrder() {
+        this.order++;
+    }
+
     @Override
     public int compareTo(Task other) {
         return this.order.compareTo(other.order);
-    }
-
-    public void incrementOrder() {
-        this.order++;
     }
 
     public String getStatement() {
@@ -58,5 +58,9 @@ public abstract class Task implements Comparable<Task> {
 
     public Course getCourse() {
         return course;
+    }
+
+    public Type getType() {
+        return type;
     }
 }

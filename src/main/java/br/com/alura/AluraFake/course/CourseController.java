@@ -2,13 +2,17 @@ package br.com.alura.AluraFake.course;
 
 import br.com.alura.AluraFake.user.*;
 import br.com.alura.AluraFake.util.ErrorItemDTO;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController
 public class CourseController {
@@ -32,7 +36,7 @@ public class CourseController {
                 .filter(User::isInstructor);
 
         if(possibleAuthor.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            return ResponseEntity.status(BAD_REQUEST)
                     .body(new ErrorItemDTO("emailInstructor", "Usuário não é um instrutor"));
         }
 
@@ -52,6 +56,24 @@ public class CourseController {
 
     @PostMapping("/course/{id}/publish")
     public ResponseEntity createCourse(@PathVariable("id") Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Course doesn't exist"));
+
+        if (course.isPublished()) {
+            return ResponseEntity.status(BAD_REQUEST).body("Course must be in BUILDING status to be published.");
+        }
+
+        if (!course.hasAllTypeOfTasks()) {
+            return ResponseEntity.status(BAD_REQUEST).body("Course must have at least one task of each type.");
+        }
+
+        if (!course.hasAllTasksInValidOrder()) {
+            return ResponseEntity.status(BAD_REQUEST).body("Course must have all tasks in continuous order.");
+        }
+
+        course.publish();
+        courseRepository.save(course);
+
         return ResponseEntity.ok().build();
     }
 

@@ -1,13 +1,11 @@
 package br.com.alura.AluraFake.course;
 
-import br.com.alura.AluraFake.task.MultipleChoiceTask;
-import br.com.alura.AluraFake.task.Option;
-import br.com.alura.AluraFake.task.SingleChoiceTask;
-import br.com.alura.AluraFake.task.Task;
+import br.com.alura.AluraFake.task.*;
 import br.com.alura.AluraFake.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -476,5 +474,72 @@ class CourseTest {
                 new Option("Spring", true),
                 new Option("Ruby", false)
         );
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_false_when_no_task_is_present() {
+        assertFalse(course.hasAllTypeOfTasks());
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_false_when_only_one_type_of_task_is_present() {
+        course.addOpenTextTask("Open Task", 1);
+        assertFalse(course.hasAllTypeOfTasks());
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_false_when_multiple_choice_task_is_missing() {
+        course.addOpenTextTask("Open Task", 1);
+        course.addSingleChoiceTask("Single Choice Task", 2, getDefaultListOfSingleChoiceOptions());
+        assertFalse(course.hasAllTypeOfTasks());
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_false_when_single_choice_task_is_missing() {
+        course.addOpenTextTask("Open Task", 1);
+        course.addMultipleChoiceTask("Multiple Choice Task", 2, getDefaultListOfMultipleChoiceOptions());
+        assertFalse(course.hasAllTypeOfTasks());
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_false_when_open_text_task_is_missing() {
+        course.addSingleChoiceTask("Single Choice Task", 1, getDefaultListOfSingleChoiceOptions());
+        course.addMultipleChoiceTask("Multiple Choice Task", 2, getDefaultListOfMultipleChoiceOptions());
+        assertFalse(course.hasAllTypeOfTasks());
+    }
+
+    @Test
+    void hasAllTypeOfTasks_should_return_true_when_all_task_types_are_present() {
+        course.addOpenTextTask("Open Task", 1);
+        course.addSingleChoiceTask("Single Choice Task", 2, getDefaultListOfSingleChoiceOptions());
+        course.addMultipleChoiceTask("Multiple Choice Task", 3, getDefaultListOfMultipleChoiceOptions());
+        assertTrue(course.hasAllTypeOfTasks());
+    }
+
+
+    @Test
+    void hasAllTasksInValidOrder_should_return_true_when_task_orders_are_incremental_and_unique() {
+        course.addOpenTextTask("Task 1", 1);
+        course.addOpenTextTask("Task 2", 2);
+        course.addOpenTextTask("Task 3", 3);
+
+        assertTrue(course.hasAllTasksInValidOrder());
+    }
+
+    @Test
+    void hasAllTasksInValidOrder_should_return_false_when_task_orders_are_not_unique_or_not_incremental() throws Exception {
+        Task openTextTask = new OpenTextTask("Task 1", 1, course);
+        Task singleChoiceTask = new SingleChoiceTask("Task 2", 2, getDefaultListOfSingleChoiceOptions(), course);
+        Task multipleChoiceTask = new MultipleChoiceTask("Task 3", 4, getDefaultListOfMultipleChoiceOptions(), course);
+        List<Task> invalidTasks = List.of(openTextTask, singleChoiceTask, multipleChoiceTask);
+
+        // Reflection only used due to encapsulation not allowing tasks with wrong order values to be added to Course
+        Field tasksField = course.getClass().getDeclaredField("tasks");
+        tasksField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<Task> tasksList = (List<Task>) tasksField.get(course);
+        tasksList.addAll(invalidTasks);
+
+        assertFalse(course.hasAllTasksInValidOrder());
     }
 }
