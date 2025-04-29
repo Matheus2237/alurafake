@@ -1,7 +1,6 @@
 package br.com.alura.AluraFake.course;
 
-import br.com.alura.AluraFake.task.OpenTextTask;
-import br.com.alura.AluraFake.task.Task;
+import br.com.alura.AluraFake.task.*;
 import br.com.alura.AluraFake.user.User;
 import jakarta.persistence.*;
 import org.springframework.util.Assert;
@@ -49,8 +48,15 @@ public class Course {
     }
 
     public void addOpenTextTask(String statement, Integer order) {
-        Assert.isTrue(isOrderValidToInsert(order), "The order has to be in an insertable position.");
-        Task task = new OpenTextTask(statement, order, this);
+        this.addTask(new OpenTextTask(statement, order, this));
+    }
+
+    public void addSingleChoiceTask(String statement, Integer order, List<Option> options) {
+        this.addTask(new    SingleChoiceTask(statement, order, options, this));
+    }
+
+    private void addTask(Task task) {
+        Assert.isTrue(isOrderValidToInsert(task.getOrder()), "The order has to be in an insertable position.");
         insertNewTaskShiftingSubsequentTasks(task);
     }
 

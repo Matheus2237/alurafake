@@ -36,8 +36,12 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/singlechoice")
-    public ResponseEntity newSingleChoice() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity newSingleChoice(@Valid @RequestBody SingleChoiceTaskDTO singleChoiceTaskDTO) {
+        Course course = getCourseIfPersistedByItsId(singleChoiceTaskDTO.courseId());
+        validateTaskForCourse(course, singleChoiceTaskDTO.statement());
+        course.addSingleChoiceTask(singleChoiceTaskDTO.statement(), singleChoiceTaskDTO.order(), singleChoiceTaskDTO.optionsAsEntites());
+        courseRepository.save(course);
+        return ResponseEntity.status(CREATED).build();
     }
 
     @PostMapping("/task/new/multiplechoice")

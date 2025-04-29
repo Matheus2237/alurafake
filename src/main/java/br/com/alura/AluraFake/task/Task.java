@@ -14,21 +14,21 @@ public abstract class Task implements Comparable<Task> {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    private Long id;
+    protected Long id;
 
     @Column(nullable = false, length = 255)
-    private String statement;
+    protected String statement;
 
     @Column(name = "task_order", nullable = false)
-    private Integer order;
+    protected Integer order;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_id")
-    private Course course;
+    protected Course course;
 
     @Enumerated(EnumType.STRING)
     @Column(insertable = false, updatable = false)
-    private Type type;
+    protected Type type;
 
     protected Task() {}
 
