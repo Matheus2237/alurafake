@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import static br.com.alura.AluraFake.course.Status.BUILDING;
+import static br.com.alura.AluraFake.course.Status.PUBLISHED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -541,5 +543,16 @@ class CourseTest {
         tasksList.addAll(invalidTasks);
 
         assertFalse(course.hasAllTasksInValidOrder());
+    }
+
+    @Test
+    void publish_should_set_status_to_published_and_set_publishedAt_when_course_is_published() {
+        assertEquals(BUILDING, course.getStatus());
+        assertNull(course.getPublishedAt());
+
+        course.publish();
+
+        assertEquals(PUBLISHED, course.getStatus());
+        assertNotNull(course.getPublishedAt());
     }
 }

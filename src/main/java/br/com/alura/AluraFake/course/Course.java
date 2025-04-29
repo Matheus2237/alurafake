@@ -7,10 +7,10 @@ import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static br.com.alura.AluraFake.course.Status.PUBLISHED;
+import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toSet;
 
 @Entity
@@ -19,7 +19,7 @@ public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = now();
     private String title;
     private String description;
     @ManyToOne
@@ -84,6 +84,7 @@ public class Course {
 
     public void publish() {
         this.status = PUBLISHED;
+        this.publishedAt = now();
     }
 
     public boolean isPublished() {
