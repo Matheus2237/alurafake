@@ -197,7 +197,7 @@ class CourseTest {
             course.addSingleChoiceTask("Task with duplicated options", 1, options);
         });
 
-        assertEquals("Options must be unique.", exception.getMessage());
+        assertEquals("There must be at least two correct options.", exception.getMessage());
     }
 
     @Test

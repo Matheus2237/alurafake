@@ -11,9 +11,7 @@ import static br.com.alura.AluraFake.task.Type.OPEN_TEXT;
 public class OpenTextTask extends Task {
 
     @Deprecated
-    public OpenTextTask() {
-        super();
-    }
+    public OpenTextTask() {}
 
     public OpenTextTask(String statement, Integer order, Course course) {
         super(statement, order, course, OPEN_TEXT);
