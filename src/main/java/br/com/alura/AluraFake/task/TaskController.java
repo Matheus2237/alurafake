@@ -18,12 +18,10 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class TaskController {
 
     private final CourseRepository courseRepository;
-    private final TaskRepository taskRepository;
 
     @Autowired
-    public TaskController(CourseRepository courseRepository, TaskRepository taskRepository) {
+    public TaskController(CourseRepository courseRepository) {
         this.courseRepository = courseRepository;
-        this.taskRepository = taskRepository;
     }
 
     @PostMapping("/task/new/opentext")
@@ -36,7 +34,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/singlechoice")
-    public ResponseEntity newSingleChoice(@Valid @RequestBody SingleChoiceTaskDTO singleChoiceTaskDTO) {
+    public ResponseEntity newSingleChoiceExercise(@Valid @RequestBody SingleChoiceTaskDTO singleChoiceTaskDTO) {
         Course course = getCourseIfPersistedByItsId(singleChoiceTaskDTO.courseId());
         validateTaskForCourse(course, singleChoiceTaskDTO.statement());
         course.addSingleChoiceTask(singleChoiceTaskDTO.statement(), singleChoiceTaskDTO.order(), singleChoiceTaskDTO.optionsAsEntites());
@@ -45,8 +43,12 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/multiplechoice")
-    public ResponseEntity newMultipleChoice() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity newMultipleChoiceExercise(@Valid @RequestBody MultipleChoiceTaskDTO multipleChoiceTaskDTO) {
+        Course course = getCourseIfPersistedByItsId(multipleChoiceTaskDTO.courseId());
+        validateTaskForCourse(course, multipleChoiceTaskDTO.statement());
+        course.addMultipleChoiceTask(multipleChoiceTaskDTO.statement(), multipleChoiceTaskDTO.order(), multipleChoiceTaskDTO.optionsAsEntites());
+        courseRepository.save(course);
+        return ResponseEntity.status(CREATED).build();
     }
 
     private Course getCourseIfPersistedByItsId(Long id) {

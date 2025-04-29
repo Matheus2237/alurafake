@@ -52,7 +52,11 @@ public class Course {
     }
 
     public void addSingleChoiceTask(String statement, Integer order, List<Option> options) {
-        this.addTask(new    SingleChoiceTask(statement, order, options, this));
+        this.addTask(new SingleChoiceTask(statement, order, options, this));
+    }
+
+    public void addMultipleChoiceTask(String statement, Integer order, List<Option> options) {
+        this.addTask(new MultipleChoiceTask(statement, order, options, this));
     }
 
     private void addTask(Task task) {

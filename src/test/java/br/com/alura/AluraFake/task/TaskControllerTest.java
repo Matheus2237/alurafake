@@ -659,4 +659,334 @@ class TaskControllerTest {
 
         verify(courseRepository, times(1)).save(any(Course.class));
     }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_courseId_is_null() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(null, "statement", 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("courseId"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_not_found_when_course_does_not_exist() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, "statement", 1, optionsDTO);
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.empty());
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_course_status_is_not_building() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, "statement", 1, optionsDTO);
+        Course courseMock = mock(Course.class);
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(PUBLISHED);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Course has to be in building phase to allow tasks registrations."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_statement_is_null_or_blank() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO nullStatementDto = new MultipleChoiceTaskDTO(42L, null, 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(nullStatementDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("statement"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+
+        MultipleChoiceTaskDTO emptyStatementDto = new MultipleChoiceTaskDTO(42L, "", 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emptyStatementDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("statement"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_statement_has_less_than_4_characters() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, "abc", 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("statement"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_statement_has_more_than_255_characters() throws Exception {
+        final String longStatement = "Questão inválida porque o enunciado fornecido excede o limite máximo de caracteres permitidos, o que resulta em falha ao processar a questão para avaliação. Por favor, reduzir o comprimento do texto para garantir que ele seja aceito pelo sistema sem erros.";
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, longStatement, 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("statement"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_task_statement_is_duplicated_with_course_title() throws Exception {
+        final Long courseId = 42L;
+        final String statement = "Statement";
+        Course courseMock = mock(Course.class);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn(statement);
+
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(courseId, statement, 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("The task's statement is the same as the course title."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course() throws Exception {
+        final Long courseId = 42L;
+        final String duplicatedStatement = "Statement duplicado.";
+        Course courseMock = mock(Course.class);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(duplicatedStatement)).thenReturn(true);
+
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(courseId, duplicatedStatement, 1, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("A task with the same statement already exists for this course."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_order_is_null() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, "statement", null, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("order"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_order_is_not_positive() throws Exception {
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO dto = new MultipleChoiceTaskDTO(42L, "statement", 0, optionsDTO);
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].field").value("order"))
+                .andExpect(jsonPath("$[0].message").isNotEmpty());
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_there_are_no_correct_options() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", false),
+                new OptionDTO("Python", false),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "Statement", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("There must be at least two correct options and one incorrect option."))
+                .when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("There must be at least two correct options and one incorrect option."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_there_are_not_enough_correct_options() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Python", false),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "Statement", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("There must be at least two correct options and one incorrect option."))
+                .when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("There must be at least two correct options and one incorrect option."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_all_options_are_correct() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Hibernate", true)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "Statement", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("There must be at least two correct options and one incorrect option."))
+                .when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("There must be at least two correct options and one incorrect option."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_options_are_duplicated() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Java", false),
+                new OptionDTO("Spring", true)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "Statement", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("Options must be unique."))
+                .when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Options must be unique."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_return_bad_request_when_option_is_equal_to_statement() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Statement", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "Statement", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doThrow(new IllegalArgumentException("Options must be different from the statement."))
+                .when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Options must be different from the statement."));
+    }
+
+    @Test
+    void newMultipleChoiceExercise__should_create_task_normally_when_all_data_is_valid() throws Exception {
+        Course courseMock = mock(Course.class);
+        List<OptionDTO> optionsDTO = List.of(
+                new OptionDTO("Java", true),
+                new OptionDTO("Spring", true),
+                new OptionDTO("Ruby", false),
+                new OptionDTO("Python", false)
+        );
+        MultipleChoiceTaskDTO newMultipleChoiceTaskDTO = new MultipleChoiceTaskDTO(42L, "New Task", 1, optionsDTO);
+
+        when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
+        when(courseMock.getStatus()).thenReturn(BUILDING);
+        when(courseMock.getTitle()).thenReturn("Title");
+        when(courseMock.hasAnyTaskWithSameStatement(anyString())).thenReturn(false);
+        doNothing().when(courseMock).addMultipleChoiceTask(anyString(), anyInt(), any());
+
+        mockMvc.perform(post("/task/new/multiplechoice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newMultipleChoiceTaskDTO)))
+                .andExpect(status().isCreated());
+
+        verify(courseRepository, times(1)).save(any(Course.class));
+    }
 }

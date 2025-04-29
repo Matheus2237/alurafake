@@ -9,7 +9,7 @@ import org.hibernate.validator.constraints.Length;
 
 import java.util.List;
 
-public record SingleChoiceTaskDTO(
+public record MultipleChoiceTaskDTO(
         @NotNull
         Long courseId,
 
@@ -23,10 +23,9 @@ public record SingleChoiceTaskDTO(
 
         @NotNull
         @Valid
-        @Size(min = 2, max = 5, message = "The activity must have between 2 and 5 options.")
-        List<OptionDTO>options
+        @Size(min = 3, max = 5, message = "The activity must have between 3 and 5 options.")
+        List<OptionDTO> options
 ) {
-
         public List<Option> optionsAsEntites() {
                 return options.stream().map(OptionDTO::toEntity).toList();
         }
