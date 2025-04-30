@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/opentext")
+    @Transactional
     @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newOpenTextExercise(@Valid @RequestBody OpenTextTaskDTO openTextTaskDTO) {
         Course course = getCourseIfPersistedByItsId(openTextTaskDTO.courseId());
@@ -36,6 +38,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/singlechoice")
+    @Transactional
     @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newSingleChoiceExercise(@Valid @RequestBody SingleChoiceTaskDTO singleChoiceTaskDTO) {
         Course course = getCourseIfPersistedByItsId(singleChoiceTaskDTO.courseId());
@@ -46,6 +49,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/multiplechoice")
+    @Transactional
     @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newMultipleChoiceExercise(@Valid @RequestBody MultipleChoiceTaskDTO multipleChoiceTaskDTO) {
         Course course = getCourseIfPersistedByItsId(multipleChoiceTaskDTO.courseId());

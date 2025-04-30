@@ -59,6 +59,7 @@ public class CourseController {
     }
 
     @PostMapping("/course/{id}/publish")
+    @Transactional
     @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity createCourse(@PathVariable("id") Long id) {
         Course course = courseRepository.findById(id)
