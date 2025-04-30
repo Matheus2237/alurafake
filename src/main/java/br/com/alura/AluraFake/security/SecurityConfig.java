@@ -39,7 +39,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/home").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/home").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/new").permitAll()
                         .anyRequest().authenticated())
