@@ -1,19 +1,25 @@
 package br.com.alura.AluraFake.user;
 
+import br.com.alura.AluraFake.security.SecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(SecurityConfig.class)
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -27,6 +33,7 @@ class UserControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newUser__should_return_bad_request_when_email_is_blank() throws Exception {
         NewUserDTO newUserDTO = new NewUserDTO();
         newUserDTO.setEmail("");
@@ -42,6 +49,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newUser__should_return_bad_request_when_email_is_invalid() throws Exception {
         NewUserDTO newUserDTO = new NewUserDTO();
         newUserDTO.setEmail("caio");
@@ -57,6 +65,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newUser__should_return_bad_request_when_email_already_exists() throws Exception {
         NewUserDTO newUserDTO = new NewUserDTO();
         newUserDTO.setEmail("caio.bugorin@alura.com.br");
@@ -74,6 +83,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newUser__should_return_created_when_user_request_is_valid() throws Exception {
         NewUserDTO newUserDTO = new NewUserDTO();
         newUserDTO.setEmail("caio.bugorin@alura.com.br");
@@ -89,6 +99,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void listAllUsers__should_list_all_users() throws Exception {
         User user1 = new User("User 1", "user1@test.com",Role.STUDENT);
         User user2 = new User("User 2", "user2@test.com",Role.STUDENT);

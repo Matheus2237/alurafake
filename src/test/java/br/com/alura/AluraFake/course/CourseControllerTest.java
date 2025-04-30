@@ -1,24 +1,28 @@
 package br.com.alura.AluraFake.course;
 
-import br.com.alura.AluraFake.task.*;
-import br.com.alura.AluraFake.user.*;
+import br.com.alura.AluraFake.security.SecurityConfig;
+import br.com.alura.AluraFake.user.Role;
+import br.com.alura.AluraFake.user.User;
+import br.com.alura.AluraFake.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(SecurityConfig.class)
 @WebMvcTest(CourseController.class)
 class CourseControllerTest {
 
@@ -32,6 +36,7 @@ class CourseControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newCourseDTO__should_return_bad_request_when_email_is_invalid() throws Exception {
 
         NewCourseDTO newCourseDTO = new NewCourseDTO();
@@ -50,8 +55,8 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
-
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newCourseDTO__should_return_bad_request_when_email_is_no_instructor() throws Exception {
 
         NewCourseDTO newCourseDTO = new NewCourseDTO();
@@ -74,6 +79,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newCourseDTO__should_return_created_when_new_course_request_is_valid() throws Exception {
 
         NewCourseDTO newCourseDTO = new NewCourseDTO();
@@ -95,6 +101,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void listAllCourses__should_list_all_courses() throws Exception {
         User paulo = new User("Paulo", "paulo@alua.com.br", Role.INSTRUCTOR);
 
@@ -116,6 +123,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void publishCourse__should_return_not_found_when_course_does_not_exist() throws Exception {
         doReturn(Optional.empty()).when(courseRepository).findById(42L);
 
@@ -124,6 +132,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void publishCourse__should_return_bad_request_when_course_status_is_not_building() throws Exception {
         Course courseMock = mock(Course.class);
         doReturn(Optional.of(courseMock)).when(courseRepository).findById(42L);
@@ -135,6 +144,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void publishCourse__should_return_bad_request_when_course_has_missing_task_types() throws Exception {
         Course courseMock = mock(Course.class);
         doReturn(Optional.of(courseMock)).when(courseRepository).findById(42L);
@@ -147,6 +157,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void publishCourse__should_return_bad_request_when_course_has_non_continuous_order() throws Exception {
         Course courseMock = mock(Course.class);
         doReturn(Optional.of(courseMock)).when(courseRepository).findById(42L);
@@ -160,6 +171,7 @@ class CourseControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void publishCourse__should_publish_course_when_valid() throws Exception {
         Course courseMock = mock(Course.class);
         doReturn(Optional.of(courseMock)).when(courseRepository).findById(42L);

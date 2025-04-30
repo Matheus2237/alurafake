@@ -2,12 +2,15 @@ package br.com.alura.AluraFake.task;
 
 import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.course.CourseRepository;
+import br.com.alura.AluraFake.security.SecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -20,6 +23,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(SecurityConfig.class)
 @WebMvcTest(TaskController.class)
 class TaskControllerTest {
 
@@ -36,6 +40,7 @@ class TaskControllerTest {
     private TaskRepository taskRepository;
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_courseId_is_null() throws Exception {
         OpenTextTaskDTO dto = new OpenTextTaskDTO(null, "statement", 1);
         mockMvc.perform(post("/task/new/opentext")
@@ -47,6 +52,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_not_found_when_course_does_not_exist() throws Exception {
         when(courseRepository.findById(anyLong())).thenReturn(Optional.empty());
         OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "statement", 1);
@@ -57,6 +63,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_course_status_is_not_building() throws Exception {
         Course courseMock = mock(Course.class);
         when(courseRepository.findById(anyLong())).thenReturn(Optional.of(courseMock));
@@ -70,6 +77,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_statement_is_null_or_blank() throws Exception {
 
         OpenTextTaskDTO nullStatementOpenTextTaskDTO = new OpenTextTaskDTO(42L, null, 1);
@@ -90,6 +98,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_statement_has_less_than_4_characters() throws Exception {
 
         OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "abc", 1);
@@ -102,6 +111,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_statement_has_more_than_255_characters() throws Exception {
 
         final String longStatement = "Questão inválida porque o enunciado fornecido excede o limite máximo de caracteres permitidos, o que resulta em falha ao processar a questão para avaliação. Por favor, reduzir o comprimento do texto para garantir que ele seja aceito pelo sistema sem erros.";
@@ -115,6 +125,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_task_statement_is_duplicated_with_course_title() throws Exception {
 
         final Long courseId = 42L;
@@ -135,6 +146,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course() throws Exception {
 
         final Long courseId = 42L;
@@ -156,6 +168,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_order_is_null() throws Exception {
 
         OpenTextTaskDTO nullOrderOpenTextTaskDTO = new OpenTextTaskDTO(42L, "statement", null);
@@ -168,6 +181,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_order_is_not_positive() throws Exception {
 
         OpenTextTaskDTO nullOrderOpenTextTaskDTO = new OpenTextTaskDTO(42L, "statement", 0);
@@ -188,6 +202,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_return_bad_request_when_order_skips_sequence() throws Exception {
         Course courseMock = mock(Course.class);
         OpenTextTaskDTO newOpenTextTaskDTO = new OpenTextTaskDTO(42L, "Statement", 3);
@@ -207,6 +222,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newOpenTextExercise__should_create_task_normally_when_all_data_is_valid_and_there_is_no_problem_in_order() throws Exception {
 
         Course courseMock = mock(Course.class);
@@ -226,6 +242,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_courseId_is_null() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -242,6 +259,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_not_found_when_course_does_not_exist() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -257,6 +275,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_course_status_is_not_building() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -275,6 +294,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_statement_is_null_or_blank() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -299,6 +319,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_statement_has_less_than_4_characters() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -315,6 +336,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_statement_has_more_than_255_characters() throws Exception {
         final String longStatement = "Questão inválida porque o enunciado fornecido excede o limite máximo de caracteres permitidos, o que resulta em falha ao processar a questão para avaliação. Por favor, reduzir o comprimento do texto para garantir que ele seja aceito pelo sistema sem erros.";
         List<OptionDTO> optionsDTO = List.of(
@@ -332,6 +354,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_task_statement_is_duplicated_with_course_title() throws Exception {
         final Long courseId = 42L;
         final String statement = "Statement";
@@ -355,6 +378,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course() throws Exception {
         final Long courseId = 42L;
         final String duplicatedStatement = "Statement duplicado.";
@@ -379,6 +403,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_order_is_null() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -395,6 +420,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_order_is_not_positive() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -411,6 +437,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_order_skips_sequence() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -435,6 +462,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_options_are_null_or_empty() throws Exception {
         SingleChoiceTaskDTO nullStatementDto = new SingleChoiceTaskDTO(42L, "Statement", 1, null);
         mockMvc.perform(post("/task/new/singlechoice")
@@ -454,6 +482,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_options_are_less_than_two() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -473,6 +502,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_options_are_more_than_five() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -497,6 +527,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_option_text_is_null_or_blank() throws Exception {
         List<OptionDTO> nullTextOptionsDTO = List.of(
                 new OptionDTO(null, true),
@@ -524,6 +555,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_option_text_is_too_short() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -544,6 +576,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_option_text_is_too_long() throws Exception {
         Course courseMock = mock(Course.class);
         String longOption = "A".repeat(81);
@@ -565,6 +598,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_there_is_more_than_one_correct_option() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -589,6 +623,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_options_are_duplicated() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -612,6 +647,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_return_bad_request_when_option_is_equal_to_statement() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -635,6 +671,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newSingleChoiceExercise__should_create_task_normally_when_all_data_is_valid_and_there_is_no_problem_in_order() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -661,6 +698,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_courseId_is_null() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -677,6 +715,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_not_found_when_course_does_not_exist() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -692,6 +731,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_course_status_is_not_building() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -710,6 +750,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_statement_is_null_or_blank() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -734,6 +775,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_statement_has_less_than_4_characters() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -750,6 +792,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_statement_has_more_than_255_characters() throws Exception {
         final String longStatement = "Questão inválida porque o enunciado fornecido excede o limite máximo de caracteres permitidos, o que resulta em falha ao processar a questão para avaliação. Por favor, reduzir o comprimento do texto para garantir que ele seja aceito pelo sistema sem erros.";
         List<OptionDTO> optionsDTO = List.of(
@@ -767,6 +810,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_task_statement_is_duplicated_with_course_title() throws Exception {
         final Long courseId = 42L;
         final String statement = "Statement";
@@ -790,6 +834,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_statement_is_duplicated_in_same_course() throws Exception {
         final Long courseId = 42L;
         final String duplicatedStatement = "Statement duplicado.";
@@ -814,6 +859,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_order_is_null() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -830,6 +876,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_order_is_not_positive() throws Exception {
         List<OptionDTO> optionsDTO = List.of(
                 new OptionDTO("Java", true),
@@ -846,6 +893,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_there_are_no_correct_options() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -870,6 +918,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_there_are_not_enough_correct_options() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -894,6 +943,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_all_options_are_correct() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -918,6 +968,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_options_are_duplicated() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -942,6 +993,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_return_bad_request_when_option_is_equal_to_statement() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
@@ -966,6 +1018,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SCOPE_INSTRUCTOR")
     void newMultipleChoiceExercise__should_create_task_normally_when_all_data_is_valid() throws Exception {
         Course courseMock = mock(Course.class);
         List<OptionDTO> optionsDTO = List.of(
