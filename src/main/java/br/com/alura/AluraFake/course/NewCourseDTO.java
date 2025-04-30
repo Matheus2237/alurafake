@@ -14,10 +14,6 @@ public class NewCourseDTO {
     @NotBlank
     @Length(min = 4, max = 255)
     private String description;
-    @NotNull
-    @NotBlank
-    @Email
-    private String emailInstructor;
 
     public NewCourseDTO() {}
 
@@ -35,13 +31,5 @@ public class NewCourseDTO {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getEmailInstructor() {
-        return emailInstructor;
-    }
-
-    public void setEmailInstructor(String emailInstructor) {
-        this.emailInstructor = emailInstructor;
     }
 }

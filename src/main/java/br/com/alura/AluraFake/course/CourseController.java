@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,12 +33,10 @@ public class CourseController {
     @Transactional
     @PostMapping("/course/new")
     @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
-    public ResponseEntity createCourse(@Valid @RequestBody NewCourseDTO newCourse) {
+    public ResponseEntity createCourse(@Valid @RequestBody NewCourseDTO newCourse, Authentication authentication) {
 
-        //Caso implemente o bonus, pegue o instrutor logado
-        Optional<User> possibleAuthor = userRepository
-                .findByEmail(newCourse.getEmailInstructor())
-                .filter(User::isInstructor);
+        Long userId = Long.valueOf(authentication.getName());
+        Optional<User> possibleAuthor = userRepository.findById(userId).filter(User::isInstructor);
 
         if(possibleAuthor.isEmpty()) {
             return ResponseEntity.status(BAD_REQUEST)
