@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/opentext")
+    @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newOpenTextExercise(@Valid @RequestBody OpenTextTaskDTO openTextTaskDTO) {
         Course course = getCourseIfPersistedByItsId(openTextTaskDTO.courseId());
         validateTaskForCourse(course, openTextTaskDTO.statement());
@@ -34,6 +36,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/singlechoice")
+    @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newSingleChoiceExercise(@Valid @RequestBody SingleChoiceTaskDTO singleChoiceTaskDTO) {
         Course course = getCourseIfPersistedByItsId(singleChoiceTaskDTO.courseId());
         validateTaskForCourse(course, singleChoiceTaskDTO.statement());
@@ -43,6 +46,7 @@ public class TaskController {
     }
 
     @PostMapping("/task/new/multiplechoice")
+    @PreAuthorize("hasAuthority('SCOPE_INSTRUCTOR')")
     public ResponseEntity newMultipleChoiceExercise(@Valid @RequestBody MultipleChoiceTaskDTO multipleChoiceTaskDTO) {
         Course course = getCourseIfPersistedByItsId(multipleChoiceTaskDTO.courseId());
         validateTaskForCourse(course, multipleChoiceTaskDTO.statement());

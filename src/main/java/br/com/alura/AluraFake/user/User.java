@@ -33,6 +33,10 @@ public class User {
         this(name, email, role, PasswordGeneration.generatePassword());
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

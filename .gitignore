@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### RSA keys ###
+src/main/resources/app.key
+src/main/resources/app.pub
+src/test/resources/app.key
+src/test/resources/app.pub
